@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block page_title %}Projects{% endblock %}</h1>
+{% endblock %}
+
+{% block app_content %}
+  <form class="form-inline" action="{{ url_for('projects.create') }}" method="post">
+    <input name="name" id="name" value="{{ request.form['name'] }}" required placeholder="Name">
+    <input class="btn btn-primary btn-sm" type="submit" value="Save">
+  </form>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Total hours</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for project in projects %}
+      <tr>
+        <td>{{ project.name }}</td>
+        <td>{{ project.total_hours }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

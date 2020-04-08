@@ -1,24 +1,40 @@
-<!doctype html>
-<title>{% block title %}{% endblock %} - Produsys</title>
+{% extends 'bootstrap/base.html' %}
+
+{#  #}
+{% block title %}
+  {% block page_title %}{% endblock %} - Produsys
+{% endblock %}
+
+{% block navbar %}
+  <nav>
+    <h1>Produsys</h1>
+    <ul>
+      {% if g.user %}
+        <li><span>{{ g.user['user_id'] }}</span>
+        <li><a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+        <li><a href="{{ url_for('projects.index') }}">Projects</a>
+        <li><a href="{{ url_for('auth.logout') }}">Log Out</a>
+      {% else %}
+        <li><a href="{{ url_for('auth.register') }}">Register</a>
+        <li><a href="{{ url_for('auth.login') }}">Log In</a>
+      {% endif %}
+    </ul>
+  </nav>
+{% endblock %}
+
+{% block content %}
+  <section class="content">
+    <header>
+      {% block header %}{% endblock %}
+    </header>
+    {% for message in get_flashed_messages() %}
+      <div class="flash">{{ message }}</div>
+    {% endfor %}
+    {% block app_content %}{% endblock %}
+  </section>
+{% endblock %}
+
+{% block styles %}
+{{super()}}
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-<nav>
-  <h1>Produsys</h1>
-  <ul>
-    {% if g.user %}
-      <li><span>{{ g.user['username'] }}</span>
-      <li><a href="{{ url_for('auth.logout') }}">Log Out</a>
-    {% else %}
-      <li><a href="{{ url_for('auth.register') }}">Register</a>
-      <li><a href="{{ url_for('auth.login') }}">Log In</a>
-    {% endif %}
-  </ul>
-</nav>
-<section class="content">
-  <header>
-    {% block header %}{% endblock %}
-  </header>
-  {% for message in get_flashed_messages() %}
-    <div class="flash">{{ message }}</div>
-  {% endfor %}
-  {% block content %}{% endblock %}
-</section>
+{% endblock %}

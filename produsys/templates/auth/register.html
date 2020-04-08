@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}Register{% endblock %}</h1>
+  <h1>{% block page_title %}Register{% endblock %}</h1>
 {% endblock %}
 
-{% block content %}
+{% block app_content %}
   <form method="post">
     <label for="username">Username</label>
     <input name="username" id="username" required>

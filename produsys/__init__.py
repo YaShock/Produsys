@@ -1,9 +1,11 @@
-from flask import Flask
-from produsys import auth
+from flask import Flask, redirect, url_for, g
+from flask_bootstrap import Bootstrap
+from produsys import auth, dashboard, projects
 
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
+    Bootstrap(app)
     app.config.from_mapping(
         SECRET_KEY='dev'
     )
@@ -20,11 +22,14 @@ def create_app(test_config=None):
     # except OSError:
     #     pass
 
-    # a simple page that says hello
     @app.route('/')
     def index():
-        return 'Hello'
+        if g.user is None:
+            return redirect(url_for('auth.login'))
+        return redirect(url_for('dashboard.index'))
 
     app.register_blueprint(auth.bp)
+    app.register_blueprint(dashboard.bp)
+    app.register_blueprint(projects.bp)
 
     return app

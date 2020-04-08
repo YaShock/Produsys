@@ -47,7 +47,8 @@ def login():
         if error is None:
             session.clear()
             session['user_id'] = user.id
-            return redirect(url_for('index'))
+            url = request.args.get('url')
+            return redirect(url or url_for('index'))
 
         flash(error)
 
@@ -60,12 +61,24 @@ def logout():
     return redirect(url_for('index'))
 
 
+@bp.before_app_request
+def load_logged_in_user():
+    user_id = session.get('user_id')
+    if user_id not in db.users:
+        session.clear()
+        user_id = None
+
+    if user_id is None or user_id not in db.users:
+        g.user = None
+    else:
+        g.user = db.users[user_id]
+
+
 def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if g.user is None:
-            return redirect(url_for('auth.login'))
-
+            return redirect(url_for('auth.login') + '?url=' + request.url)
         return view(**kwargs)
 
     return wrapped_view
