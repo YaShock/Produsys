@@ -1,6 +1,6 @@
 from flask import Flask, redirect, url_for, g
 from flask_bootstrap import Bootstrap
-from produsys import auth, dashboard, projects
+from produsys import auth, dashboard, projects, tasks
 
 
 def create_app(test_config=None):
@@ -31,5 +31,6 @@ def create_app(test_config=None):
     app.register_blueprint(auth.bp)
     app.register_blueprint(dashboard.bp)
     app.register_blueprint(projects.bp)
+    app.register_blueprint(tasks.bp)
 
     return app

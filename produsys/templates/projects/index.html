@@ -7,7 +7,7 @@
 {% block app_content %}
   <form class="form-inline" action="{{ url_for('projects.create') }}" method="post">
     <input name="name" id="name" value="{{ request.form['name'] }}" required placeholder="Name">
-    <input class="btn btn-primary btn-sm" type="submit" value="Save">
+    <input class="btn btn-primary btn-sm" type="submit" value="Add">
   </form>
 
   <table class="table">
@@ -20,7 +20,7 @@
     <tbody>
       {% for project in projects %}
       <tr>
-        <td>{{ project.name }}</td>
+        <td><a href="{{ url_for('tasks.index', project_id=project.id) }}">{{ project.name }}</a></td>
         <td>{{ project.total_hours }}</td>
       </tr>
       {% endfor %}

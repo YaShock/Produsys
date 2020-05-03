@@ -23,11 +23,12 @@ def create():
 
         if not name:
             error = 'Name is required.'
+        elif db.get_project_by_name(g.user.id, name) is not None:
+            error = 'Name is already in use.'
 
         if error:
             flash(error)
         else:
             db.create_project(g.user.id, name)
-            return redirect(url_for('projects.index'))
 
-    return render_template('projects/create.html')
+    return redirect(url_for('projects.index'))
