@@ -17,32 +17,45 @@
       {% endfor %}
     </select>
 
+    <div class="help-block"></div>
     <form class="form-inline" action="{{ url_for('tasks.create',project_id=project.id) }}" method="post">
       <input name="name" id="name" value="{{ request.form['name'] }}" required placeholder="Name">
       <input class="btn btn-primary btn-sm" type="submit" value="Add">
     </form>
 
     {% if tasks|length > 0%}
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Name</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for task in tasks %}
-          <tr>
-            <td>{{ task.name }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <ul>
+      {% for task in tasks recursive %}
+        <li>
+          <div>
+            {{ task.name }}
+            <a href="{{ url_for('tasks.subtask', project_id=project.id, parent_id=task.id) }}">
+              Add subtask
+            </a>
+            <form class="form-inline" action="{{ url_for('tasks.delete', project_id=project.id, task_id=task.id) }}" method="post">
+              <button type="submit" class="btn btn-danger btn-sm">
+                Delete
+              </button>
+            </form>
+          </div>
+            {% if task.subtasks %}
+              <ul>{{ loop(task.subtasks) }}</ul>
+            {% endif %}
+        </li>
+      {% endfor %}
+      </ul>
     {% else%}
       <h4>No tasks have been added yet.</h4>
     {% endif %}
   {% else %}
     <h3>No projects have been added yet.</h3>
   {% endif %}
+
+  <style type="text/css">
+    .form-inline {
+      display: inline;
+    }
+  </style>
 
   <script type="text/javascript">
     function onProject(selected) {

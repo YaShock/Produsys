@@ -57,6 +57,18 @@ class Database(object):
             if project.name == project_name:
                 return project
 
+    def delete_project(self, user_id, project_id):
+        idx = None
+        for i, project in enumerate(self.projects[user_id]):
+            if project.id == project_id:
+                idx = i
+                break
+        if idx is not None:
+            # Delete all tasks in project
+            self.tasks[user_id] = [t for t in self.tasks[user_id] if (
+                t.project.id != project_id)]
+            del self.projects[user_id][idx]
+
     def get_project_by_id(self, user_id, project_id):
         for project in self.projects[user_id]:
             if project.id == project_id:
@@ -73,6 +85,24 @@ class Database(object):
         id = Task.ID_COUNTER
         Task.ID_COUNTER += 1
         self.tasks[project.user_id].append(Task(id, name, project, parent))
+
+    def get_task_by_id(self, user_id, task_id):
+        for task in self.tasks[user_id]:
+            if task.id == task_id:
+                return task
+
+    def delete_task(self, user_id, task_id):
+        ids = [task.id for task in self.tasks[user_id] if (
+            task.parent and task.parent.id == task_id)]
+        for i in ids:
+            self.delete_task(user_id, i)
+        idx = None
+        for i, task in enumerate(self.tasks[user_id]):
+            if task.id == task_id:
+                idx = i
+                break
+        if idx is not None:
+            del self.tasks[user_id][idx]
 
 
 db = Database()

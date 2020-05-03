@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block page_title %}Create subtask for {{ task.name }}{% endblock %}</h1>
+{% endblock %}
+
+{% block app_content %}
+  <form class="form-inline" action="{{ url_for('tasks.subtask', project_id=project_id, parent_id=task.id) }}" method="post">
+    <input name="name" id="name" value="{{ request.form['name'] }}" required placeholder="Name">
+    <input class="btn btn-primary btn-sm" type="submit" value="Add">
+  </form>
+  <form class="form-inline" action="{{ url_for('tasks.index', project_id=task.project.id) }}" method="get">
+    <input class="btn btn-primary btn-sm" type="submit" value="Cancel">
+  </form>
+{% endblock %}

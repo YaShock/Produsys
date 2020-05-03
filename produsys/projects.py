@@ -32,3 +32,13 @@ def create():
             db.create_project(g.user.id, name)
 
     return redirect(url_for('projects.index'))
+
+
+@bp.route('/delete/<project_id>', methods=('GET', 'POST'))
+@login_required
+def delete(project_id):
+    if request.method == 'POST':
+        if project_id is not None:
+            db.delete_project(g.user.id, int(project_id))
+
+    return redirect(url_for('projects.index'))
