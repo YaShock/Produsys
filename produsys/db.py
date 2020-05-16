@@ -1,3 +1,6 @@
+import datetime
+
+
 class User(object):
     ID_COUNTER = 0
 
@@ -14,17 +17,50 @@ class Project(object):
         self.id = id
         self.user_id = user_id
         self.name = name
-        self.total_hours = 0
+        self.total_duration = datetime.timedelta()
 
 
 class Task(object):
     ID_COUNTER = 0
 
-    def __init__(self, id, name, project, parent=None):
+    def __init__(self, id, name, project: Project, parent=None):
         self.id = id
         self.name = name
         self.project = project
         self.parent = parent
+        self.started = False
+        self.start_time = None
+        self.total_duration = datetime.timedelta()
+
+    def start(self):
+        if not self.started:
+            self.started = True
+            self.start_time = datetime.datetime.utcnow()
+
+    def stop(self):
+        if self.started:
+            interval = datetime.datetime.utcnow() - self.start_time
+            self.started = False
+            self.start_time = None
+            self._add_duration(interval)
+
+    def _add_duration(self, duration):
+        self.total_duration += duration
+        if self.parent is None:
+            self.project.total_duration += duration
+        else:
+            self.parent._add_duration(duration)
+
+
+class TaskChunk(object):
+    ID_COUNTER = 0
+
+    def __init__(self, id, task_name, start, end):
+        self.id = id
+        self.task_name = task_name
+        self.start = start
+        self.end = end
+        self.duration = end - start
 
 
 class Database(object):
@@ -34,6 +70,7 @@ class Database(object):
         self.users = {}
         self.projects = {}
         self.tasks = {}
+        self.task_chunks = {}
 
     def create_new_user(self, name, pw_hash):
         id = User.ID_COUNTER
@@ -41,6 +78,7 @@ class Database(object):
         self.users[id] = User(id, name, pw_hash)
         self.projects[id] = []
         self.tasks[id] = []
+        self.task_chunks[id] = []
 
     def get_user_by_name(self, name):
         for user in self.users.values():
@@ -65,8 +103,10 @@ class Database(object):
                 break
         if idx is not None:
             # Delete all tasks in project
-            self.tasks[user_id] = [t for t in self.tasks[user_id] if (
-                t.project.id != project_id)]
+            task_ids = [t.id for t in self.tasks[user_id] if (
+                t.project.id == project_id)]
+            for i in task_ids:
+                self.delete_task(user_id, i)
             del self.projects[user_id][idx]
 
     def get_project_by_id(self, user_id, project_id):
@@ -76,6 +116,9 @@ class Database(object):
 
     def get_projects_of_user(self, user_id):
         return self.projects[user_id]
+
+    def get_tasks_of_user(self, user_id):
+        return self.tasks[user_id]
 
     def get_tasks_of_project(self, project):
         return [task for task in self.tasks[project.user_id] if (
@@ -102,7 +145,24 @@ class Database(object):
                 idx = i
                 break
         if idx is not None:
+            # self.delete_chunks_of_task(user_id, self.tasks[user_id][idx].id)
             del self.tasks[user_id][idx]
+
+    def create_task_chunk(self, user_id, task_id, start, end):
+        id = TaskChunk.ID_COUNTER
+        TaskChunk.ID_COUNTER += 1
+        self.task_chunks[user_id].append(TaskChunk(id, task_id, start, end))
+
+    def get_task_chunks(self, user_id, task_id):
+        return [t for t in self.task_chunks[user_id] if t.task_id == task_id]
+
+    def task_chunks_on_day(self, user_id, day):
+        return [t for t in self.task_chunks[user_id] if (
+            t.start.date() >= day and t.end.date() <= day)]
+
+    def delete_chunks_of_task(self, user_id, task_id):
+        self.task_chunks[user_id] = [t for t in self.task_chunks[user_id] if (
+            t.task_id != task_id)]
 
 
 db = Database()

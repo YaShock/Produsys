@@ -5,4 +5,116 @@
 {% endblock %}
 
 {% block app_content %}
+  {% if tasks|length > 0 %}
+    <select id="selectTask" name="select_task" onchange="onTask(this)">
+      {% if task is none %}
+        <option disabled selected value style="display:none"> -- select a task -- </option>
+      {% endif %}
+      {% for t in tasks %}
+        <option value="{{ url_for('dashboard.index', task_id=t.id) }}" {% if t.id == task.id %} selected="selected" {% endif %}>
+          {{ t.name }}
+        </option>
+      {% endfor %}
+    </select>
+    {% if task.started %}
+      <form class="form-inline" action="{{ url_for('dashboard.stop',task_id=task.id) }}" method="post">
+        <button class="btn btn-primary btn-sm" type="submit">
+          Stop
+        </button>
+      </form>
+    {% else %}
+      <form class="form-inline" action="{{ url_for('dashboard.start',task_id=task.id) }}" method="post">
+        <button class="btn btn-primary btn-sm" type="submit">
+          Start
+        </button>
+      </form>
+    {% endif %}
+
+    {% if task.start_time_elapsed %}
+      <span id="labelTime"> {{ task.start_time_elapsed }} </span>
+    {% endif %}
+
+  {% else %}
+    <h4>No tasks have been added yet.</h4>
+  {% endif %}
+
+  <div>
+    From <input type="date" id="startDate" value="{{ start_date }}" onchange="onDate()">
+    To <input type="date" id="endDate" value="{{ end_date }}" onchange="onDate()">
+  </div>
+
+  {% for chunk_list in task_chunks %}
+    <div class="row">
+      <h4 class="col-xs-3">{{ chunk_list["date"] }}</h4>
+      <h4 class="col-xs-3">{{ chunk_list["total_duration"] }}</h4>
+    </div>
+
+    <div class="row">
+      <label class="col-xs-3">Task</label>
+      <label class="col-xs-3">Start</label>
+      <label class="col-xs-3">End</label>
+      <label class="col-xs-3">Duration</label>
+    </div>
+    {% for chunk in chunk_list["chunks"] %}
+      <div class="row">
+        <div class="col-xs-3">{{ chunk.task_name }}</div>
+        <div class="col-xs-3">{{ chunk.start.strftime('%H:%M:%S') }}</div>
+        <div class="col-xs-3">{{ chunk.end.strftime('%H:%M:%S') }}</div>
+        <div class="col-xs-3">{{ chunk.duration_text }}</div>
+      </div>
+    {% endfor %}
+  {% endfor %}
+
+  <style type="text/css">
+    .form-inline {
+      display: inline;
+    }
+  </style>
+
+  <script type="text/javascript">
+    setInterval(function() {
+      refreshTimer();
+    }, 1000);
+
+    function onTask(selected) {
+      window.location = selected.value;
+    }
+
+    function pad(num, size) {
+      var s = num+"";
+      while (s.length < size) s = "0" + s;
+      return s;
+    }
+
+    function refreshTimer() {
+      let t = $("#labelTime").html();
+      let parts = t.split(":");
+      let h = parseInt(parts[0], 10);
+      let m = parseInt(parts[1], 10);
+      let s = parseInt(parts[2], 10);
+      s++;
+      if (s === 60)
+      {
+        m++;
+        s = 0;
+      }
+      if (m === 60)
+      {
+        h++;
+        m = 0;
+      }
+      let text = h.toString() + ":" + pad(m, 2) + ":" + pad(s, 2);
+      $("#labelTime").html(text);
+    }
+
+    function onDate() {
+      let startDate = "start_date=" + $("#startDate").val();
+      let endDate = "end_date=" + $("#endDate").val();
+      console.log(startDate);
+      console.log(endDate);
+      let args = "?" + startDate + "&" + endDate;
+      let url = "{% if (task) %}{{ url_for('dashboard.index', task_id=task.id ) }}{% else %}{{ url_for('dashboard.index') }}{% endif %}";
+      window.location = url + args;
+    }
+  </script>
 {% endblock %}

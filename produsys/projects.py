@@ -3,6 +3,7 @@ from flask import (
 )
 from produsys.auth import login_required
 from produsys.db import db
+from datetime import timedelta
 
 bp = Blueprint('projects', __name__, url_prefix='/projects')
 
@@ -11,6 +12,10 @@ bp = Blueprint('projects', __name__, url_prefix='/projects')
 @login_required
 def index():
     projects = db.get_projects_of_user(g.user.id)
+
+    for project in projects:
+        project.total_duration_str = str(project.total_duration).split('.')[0]
+
     return render_template('projects/index.html', projects=projects)
 
 

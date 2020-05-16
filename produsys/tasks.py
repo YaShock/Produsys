@@ -44,7 +44,7 @@ def index(project_id):
         tasks = get_hierarchical_tasks(project.id, tasks)
 
     return render_template('tasks/index.html',
-        project=project, projects=projects, tasks=tasks)
+                           project=project, projects=projects, tasks=tasks)
 
 
 @bp.route('/create/<project_id>', methods=('GET', 'POST'))
@@ -88,7 +88,8 @@ def subtask(project_id, parent_id):
             db.create_task(name, parent.project, parent)
         return redirect(url_for('tasks.index', project_id=project_id))
     else:
-        return render_template('tasks/subtask.html', project_id=project_id, task=parent)
+        return render_template('tasks/subtask.html',
+                               project_id=project_id, task=parent)
 
 
 @bp.route('/delete/<project_id>/<task_id>', methods=('GET', 'POST'))
