@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block page_title %}Statistics for {{ section }}{% endblock %}</h1>
+{% endblock %}
+
+{% block app_content %}
+
+{% import 'statistics/items.html' as items %}
+{{ items.items(tasks, 'Task', 'statistics.task') }}
+
+{% endblock %}

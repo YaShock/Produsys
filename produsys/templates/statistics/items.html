@@ -1,0 +1,22 @@
+{% macro items(item_list, type, endpoint) %}
+  {% if item_list|length > 0 %}
+    <div class="row">
+      <h4 class="col-xs-3">{{ type }}</h4>
+      <h4 class="col-xs-3">Total duration</h4>
+      <h4 class="col-xs-3">Percentage</h4>
+    </div>
+    {% for item in item_list %}
+    <div class="row">
+      <div class="col-xs-3">
+        <a href="{{ url_for(endpoint, id=item.id) }}">
+          {{ item.name }}
+        </a>
+      </div>
+      <div class="col-xs-3">{{ item.total_duration_str }}</div>
+      <div class="col-xs-3">{{ item.percentage }}</div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <h3>No items have been added yet.</h3>
+  {% endif %}
+{% endmacro %}

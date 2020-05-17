@@ -3,30 +3,9 @@ from flask import (
 )
 from produsys.auth import login_required
 from produsys.db import db
+from produsys.task_utils import get_hierarchical_tasks
 
 bp = Blueprint('tasks', __name__, url_prefix='/tasks')
-
-
-def get_subtasks(parent_id, all_tasks):
-    print('get_subtasks for {}'.format(parent_id))
-    tasks = []
-    for task in all_tasks:
-        if task.parent and task.parent.id == parent_id:
-            tasks.append(task)
-            print('subtask {}'.format(task.id))
-    for task in tasks:
-        task.subtasks = get_subtasks(task.id, all_tasks)
-    return tasks
-
-
-def get_hierarchical_tasks(project_id, all_tasks):
-    tasks = []
-    for task in all_tasks:
-        if task.parent is None and task.project.id == project_id:
-            tasks.append(task)
-    for task in tasks:
-        task.subtasks = get_subtasks(task.id, all_tasks)
-    return tasks
 
 
 @bp.route('/', defaults={'project_id': None})

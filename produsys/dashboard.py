@@ -86,7 +86,8 @@ def stop(task_id):
                 if task.started:
                     start = task.start_time
                     end = datetime.utcnow()
-                    db.create_task_chunk(g.user.id, task.name, start, end)
+                    db.create_task_chunk(
+                        g.user.id, task.id, task.name, start, end)
                 task.stop()
 
     return redirect(url_for('dashboard.index', task_id=task_id))

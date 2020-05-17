@@ -55,8 +55,9 @@ class Task(object):
 class TaskChunk(object):
     ID_COUNTER = 0
 
-    def __init__(self, id, task_name, start, end):
+    def __init__(self, id, task_id, task_name, start, end):
         self.id = id
+        self.task_id = task_id
         self.task_name = task_name
         self.start = start
         self.end = end
@@ -148,10 +149,11 @@ class Database(object):
             # self.delete_chunks_of_task(user_id, self.tasks[user_id][idx].id)
             del self.tasks[user_id][idx]
 
-    def create_task_chunk(self, user_id, task_id, start, end):
+    def create_task_chunk(self, user_id, task_id, task_name, start, end):
         id = TaskChunk.ID_COUNTER
         TaskChunk.ID_COUNTER += 1
-        self.task_chunks[user_id].append(TaskChunk(id, task_id, start, end))
+        self.task_chunks[user_id].append(
+            TaskChunk(id, task_id, task_name, start, end))
 
     def get_task_chunks(self, user_id, task_id):
         return [t for t in self.task_chunks[user_id] if t.task_id == task_id]
