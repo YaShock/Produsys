@@ -2,7 +2,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
 )
 from produsys.auth import login_required
-from produsys.db import db
+from produsys.db import repo
 from produsys.task_utils import get_subtasks
 from datetime import datetime, timedelta
 
@@ -28,7 +28,7 @@ def calc_stats(items, parent=None):
 @bp.route('/')
 @login_required
 def index():
-    projects = db.get_projects_of_user(g.user.id)
+    projects = repo.get_projects_of_user(g.user.id)
     calc_stats(projects)
 
     return render_template('statistics/index.html',
@@ -37,12 +37,12 @@ def index():
 @bp.route('/project/<id>')
 @login_required
 def project(id):
-    project = db.get_project_by_id(g.user.id, int(id))
+    project = repo.get_project_by_id(id)
 
     if project is None:
         return redirect(url_for('statistics.index'))
 
-    tasks = db.get_tasks_of_project(project)
+    tasks = repo.get_tasks_of_project(project)
     top_tasks = [task for task in tasks if task.parent is None]
     calc_stats(top_tasks, project)
 
@@ -52,8 +52,8 @@ def project(id):
 
 @bp.route('/task/<id>')
 def task(id):
-    task = db.get_task_by_id(g.user.id, int(id))
-    tasks = db.get_tasks_of_user(g.user.id)
+    task = repo.get_task_by_id(id)
+    tasks = repo.get_tasks_of_user(g.user.id)
     subtasks = get_subtasks(task.id, tasks)
     calc_stats(subtasks, task)
 

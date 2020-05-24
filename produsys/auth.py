@@ -3,7 +3,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
 from werkzeug.security import check_password_hash, generate_password_hash
-from produsys.db import db
+from produsys.db import repo
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -19,11 +19,11 @@ def register():
             error = 'Username is required.'
         elif not password:
             error = 'Password is required.'
-        elif db.get_user_by_name(username) is not None:
+        elif repo.get_user_by_name(username) is not None:
             error = 'User {} is already registered.'.format(username)
 
         if error is None:
-            db.create_new_user(username, generate_password_hash(password))
+            repo.create_new_user(username, generate_password_hash(password))
             return redirect(url_for('auth.login'))
 
         flash(error)
@@ -37,7 +37,7 @@ def login():
         username = request.form['username']
         password = request.form['password']
         error = None
-        user = db.get_user_by_name(username)
+        user = repo.get_user_by_name(username)
 
         if user is None:
             error = 'Incorrect username.'
@@ -64,14 +64,15 @@ def logout():
 @bp.before_app_request
 def load_logged_in_user():
     user_id = session.get('user_id')
-    if user_id not in db.users:
+    user = repo.get_user_by_id(user_id)
+    if user is None:
         session.clear()
         user_id = None
 
-    if user_id is None or user_id not in db.users:
+    if user_id is None:
         g.user = None
     else:
-        g.user = db.users[user_id]
+        g.user = user
 
 
 def login_required(view):

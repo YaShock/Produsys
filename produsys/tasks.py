@@ -2,7 +2,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
 )
 from produsys.auth import login_required
-from produsys.db import db
+from produsys.db import repo
 from produsys.task_utils import get_hierarchical_tasks
 
 bp = Blueprint('tasks', __name__, url_prefix='/tasks')
@@ -12,14 +12,14 @@ bp = Blueprint('tasks', __name__, url_prefix='/tasks')
 @bp.route('/<project_id>')
 @login_required
 def index(project_id):
-    projects = db.get_projects_of_user(g.user.id)
+    projects = repo.get_projects_of_user(g.user.id)
     project = None
     if project_id is not None:
-        project = db.get_project_by_id(g.user.id, int(project_id))
+        project = repo.get_project_by_id(project_id)
     tasks = []
 
     if project is not None:
-        tasks = db.get_tasks_of_project(project)
+        tasks = repo.get_tasks_of_project(project)
         tasks = get_hierarchical_tasks(project.id, tasks)
 
     return render_template('tasks/index.html',
@@ -30,7 +30,7 @@ def index(project_id):
 @login_required
 def create(project_id):
     if request.method == 'POST':
-        project = db.get_project_by_id(g.user.id, int(project_id))
+        project = repo.get_project_by_id(project_id)
         name = request.form['name']
         error = None
 
@@ -40,7 +40,7 @@ def create(project_id):
         if error:
             flash(error)
         elif project is not None:
-            db.create_task(name, project)
+            repo.create_task(name, project)
 
     return redirect(url_for('tasks.index', project_id=project_id))
 
@@ -50,7 +50,7 @@ def create(project_id):
 def subtask(project_id, parent_id):
     parent = None
     if parent_id is not None:
-        parent = db.get_task_by_id(g.user.id, int(parent_id))
+        parent = repo.get_task_by_id(parent_id)
     if parent is None:
         return redirect(url_for('tasks.index', project_id=project_id))
 
@@ -64,7 +64,7 @@ def subtask(project_id, parent_id):
         if error:
             flash(error)
         else:
-            db.create_task(name, parent.project, parent)
+            repo.create_task(name, parent.project, parent)
         return redirect(url_for('tasks.index', project_id=project_id))
     else:
         return render_template('tasks/subtask.html',
@@ -76,6 +76,6 @@ def subtask(project_id, parent_id):
 def delete(project_id, task_id):
     if request.method == 'POST':
         if task_id is not None:
-            db.delete_task(g.user.id, int(task_id))
+            repo.delete_task(task_id)
 
     return redirect(url_for('tasks.index', project_id=project_id))

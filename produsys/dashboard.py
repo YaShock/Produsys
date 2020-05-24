@@ -2,7 +2,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
 )
 from produsys.auth import login_required
-from produsys.db import db
+from produsys.db import repo
 from datetime import datetime, timedelta
 
 bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
@@ -13,7 +13,7 @@ def task_chunks_between_dates(user_id, start_date, end_date):
     current = end_date
 
     while current >= start_date:
-        tc = db.task_chunks_on_day(user_id, current)
+        tc = repo.task_chunks_on_day(user_id, current)
         total_dur = timedelta()
 
         for chunk in tc:
@@ -35,8 +35,8 @@ def task_chunks_between_dates(user_id, start_date, end_date):
 def index(task_id):
     task = None
     if task_id:
-        task = db.get_task_by_id(g.user.id, int(task_id))
-    tasks = db.get_tasks_of_user(g.user.id)
+        task = repo.get_task_by_id(int(task_id))
+    tasks = repo.get_tasks_of_user(g.user.id)
 
     if task:
         task.start_time_elapsed = None
@@ -69,9 +69,10 @@ def index(task_id):
 def start(task_id):
     if request.method == 'POST':
         if task_id:
-            task = db.get_task_by_id(g.user.id, int(task_id))
+            task = repo.get_task_by_id(int(task_id))
             if task:
                 task.start()
+                repo.db.session.commit()
 
     return redirect(url_for('dashboard.index', task_id=task_id))
 
@@ -81,13 +82,14 @@ def start(task_id):
 def stop(task_id):
     if request.method == 'POST':
         if task_id:
-            task = db.get_task_by_id(g.user.id, int(task_id))
+            task = repo.get_task_by_id(int(task_id))
             if task:
                 if task.started:
                     start = task.start_time
                     end = datetime.utcnow()
-                    db.create_task_chunk(
+                    repo.create_task_chunk(
                         g.user.id, task.id, task.name, start, end)
                 task.stop()
+                repo.db.session.commit()
 
     return redirect(url_for('dashboard.index', task_id=task_id))

@@ -1,33 +1,66 @@
 import datetime
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import backref
 
 
-class User(object):
-    ID_COUNTER = 0
+db = SQLAlchemy()
 
-    def __init__(self, id, name, pw_hash):
-        self.id = id
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), nullable=False)
+    pw_hash = db.Column(db.String(120), nullable=False)
+
+    def __init__(self, name, pw_hash):
         self.name = name
         self.pw_hash = pw_hash
 
 
-class Project(object):
-    ID_COUNTER = 0
+class Project(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    name = db.Column(db.String(80), nullable=False)
+    total_duration = db.Column(
+        db.Interval,
+        nullable=False,
+        default=datetime.timedelta())
 
-    def __init__(self, id, user_id, name):
-        self.id = id
+    def __init__(self, user_id, name):
         self.user_id = user_id
         self.name = name
         self.total_duration = datetime.timedelta()
 
 
-class Task(object):
-    ID_COUNTER = 0
+class Task(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), nullable=False)
+    started = db.Column(db.Boolean, nullable=False)
+    start_time = db.Column(db.DateTime)
+    total_duration = db.Column(
+        db.Interval,
+        nullable=False,
+        default=datetime.timedelta())
 
-    def __init__(self, id, name, project: Project, parent=None):
-        self.id = id
+    project_id = db.Column(
+        db.Integer,
+        db.ForeignKey('project.id', ondelete='CASCADE'),
+        nullable=False)
+    project = db.relationship(
+        'Project', backref=backref(
+            'tasks', passive_deletes=True))
+
+    parent_id = db.Column(
+        db.Integer,
+        db.ForeignKey(id))
+    chilren = db.relationship(
+        'Task',
+        cascade='all, delete-orphan',
+        backref=backref('parent', remote_side=id))
+
+    def __init__(self, name, project_id, parent=None):
         self.name = name
-        self.project = project
-        self.parent = parent
+        self.project_id = project_id
+        self.parent_id = parent.id if parent else None
         self.started = False
         self.start_time = None
         self.total_duration = datetime.timedelta()
@@ -52,119 +85,101 @@ class Task(object):
             self.parent._add_duration(duration)
 
 
-class TaskChunk(object):
-    ID_COUNTER = 0
+class TaskChunk(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    task_name = db.Column(db.String(80), nullable=False)
+    start = db.Column(db.DateTime, nullable=False)
+    end = db.Column(db.DateTime, nullable=False)
+    duration = db.Column(db.Interval, nullable=False)
 
-    def __init__(self, id, task_id, task_name, start, end):
-        self.id = id
+    task_id = db.Column(
+        db.Integer,
+        db.ForeignKey('task.id', ondelete='CASCADE'),
+        nullable=False)
+    task = db.relationship('Task')
+
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('user.id'),
+        nullable=False)
+
+    def __init__(self, task_id, user_id, task_name, start, end):
         self.task_id = task_id
+        self.user_id = user_id
         self.task_name = task_name
         self.start = start
         self.end = end
         self.duration = end - start
 
 
-class Database(object):
-    """docstring for Database"""
+class Repository(object):
+    def __init__(self, db):
+        self.db = db
 
-    def __init__(self):
-        self.users = {}
-        self.projects = {}
-        self.tasks = {}
-        self.task_chunks = {}
+    def init_app(self, app):
+        self.db.init_app(app)
+        self.db.create_all()
 
     def create_new_user(self, name, pw_hash):
-        id = User.ID_COUNTER
-        User.ID_COUNTER += 1
-        self.users[id] = User(id, name, pw_hash)
-        self.projects[id] = []
-        self.tasks[id] = []
-        self.task_chunks[id] = []
+        user = User(name, pw_hash)
+        self.db.session.add(user)
+        self.db.session.commit()
+
+    def get_user_by_id(self, user_id):
+        return User.query.filter_by(id=user_id).first()
 
     def get_user_by_name(self, name):
-        for user in self.users.values():
-            if user.name == name:
-                return user
+        return User.query.filter_by(name=name).first()
 
     def create_project(self, user_id, name):
-        id = Project.ID_COUNTER
-        Project.ID_COUNTER += 1
-        self.projects[user_id].append(Project(id, user_id, name))
+        project = Project(user_id, name)
+        self.db.session.add(project)
+        self.db.session.commit()
 
     def get_project_by_name(self, user_id, project_name):
-        for project in self.projects[user_id]:
-            if project.name == project_name:
-                return project
+        return Project.query.filter(
+            Project.name == project_name, Project.user_id == user_id).first()
 
-    def delete_project(self, user_id, project_id):
-        idx = None
-        for i, project in enumerate(self.projects[user_id]):
-            if project.id == project_id:
-                idx = i
-                break
-        if idx is not None:
-            # Delete all tasks in project
-            task_ids = [t.id for t in self.tasks[user_id] if (
-                t.project.id == project_id)]
-            for i in task_ids:
-                self.delete_task(user_id, i)
-            del self.projects[user_id][idx]
+    def delete_project(self, project_id):
+        project = Project.query.filter_by(id=project_id).first()
+        self.db.session.delete(project)
+        self.db.session.commit()
 
-    def get_project_by_id(self, user_id, project_id):
-        for project in self.projects[user_id]:
-            if project.id == project_id:
-                return project
+    def get_project_by_id(self, project_id):
+        return Project.query.filter_by(id=project_id).first()
 
     def get_projects_of_user(self, user_id):
-        return self.projects[user_id]
+        return Project.query.filter_by(user_id=user_id).all()
 
     def get_tasks_of_user(self, user_id):
-        return self.tasks[user_id]
+        return Task.query.filter(Task.project.has(user_id=user_id)).all()
 
     def get_tasks_of_project(self, project):
-        return [task for task in self.tasks[project.user_id] if (
-            task.project.id == project.id)]
+        return Task.query.filter_by(project_id=project.id).all()
 
     def create_task(self, name, project, parent=None):
-        id = Task.ID_COUNTER
-        Task.ID_COUNTER += 1
-        self.tasks[project.user_id].append(Task(id, name, project, parent))
+        task = Task(name, project.id, parent)
+        self.db.session.add(task)
+        self.db.session.commit()
 
-    def get_task_by_id(self, user_id, task_id):
-        for task in self.tasks[user_id]:
-            if task.id == task_id:
-                return task
+    def get_task_by_id(self, task_id):
+        return Task.query.filter_by(id=task_id).first()
 
-    def delete_task(self, user_id, task_id):
-        ids = [task.id for task in self.tasks[user_id] if (
-            task.parent and task.parent.id == task_id)]
-        for i in ids:
-            self.delete_task(user_id, i)
-        idx = None
-        for i, task in enumerate(self.tasks[user_id]):
-            if task.id == task_id:
-                idx = i
-                break
-        if idx is not None:
-            # self.delete_chunks_of_task(user_id, self.tasks[user_id][idx].id)
-            del self.tasks[user_id][idx]
+    def delete_task(self, task_id):
+        task = Task.query.filter_by(id=task_id).first()
+        self.db.session.delete(task)
+        self.db.session.commit()
 
     def create_task_chunk(self, user_id, task_id, task_name, start, end):
-        id = TaskChunk.ID_COUNTER
-        TaskChunk.ID_COUNTER += 1
-        self.task_chunks[user_id].append(
-            TaskChunk(id, task_id, task_name, start, end))
+        task_chunk = TaskChunk(task_id, user_id, task_name, start, end)
+        self.db.session.add(task_chunk)
+        self.db.session.commit()
 
     def get_task_chunks(self, user_id, task_id):
-        return [t for t in self.task_chunks[user_id] if t.task_id == task_id]
+        return TaskChunk.query.filter_by(task_id=task_id.id).all()
 
     def task_chunks_on_day(self, user_id, day):
-        return [t for t in self.task_chunks[user_id] if (
-            t.start.date() >= day and t.end.date() <= day)]
-
-    def delete_chunks_of_task(self, user_id, task_id):
-        self.task_chunks[user_id] = [t for t in self.task_chunks[user_id] if (
-            t.task_id != task_id)]
+        return TaskChunk.query.filter_by(user_id=user_id).all()
 
 
-db = Database()
+repo = Repository(db)

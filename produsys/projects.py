@@ -2,7 +2,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
 )
 from produsys.auth import login_required
-from produsys.db import db
+from produsys.db import repo
 from datetime import timedelta
 
 bp = Blueprint('projects', __name__, url_prefix='/projects')
@@ -11,7 +11,7 @@ bp = Blueprint('projects', __name__, url_prefix='/projects')
 @bp.route('')
 @login_required
 def index():
-    projects = db.get_projects_of_user(g.user.id)
+    projects = repo.get_projects_of_user(g.user.id)
 
     for project in projects:
         project.total_duration_str = str(project.total_duration).split('.')[0]
@@ -28,13 +28,13 @@ def create():
 
         if not name:
             error = 'Name is required.'
-        elif db.get_project_by_name(g.user.id, name) is not None:
+        elif repo.get_project_by_name(g.user.id, name) is not None:
             error = 'Name is already in use.'
 
         if error:
             flash(error)
         else:
-            db.create_project(g.user.id, name)
+            repo.create_project(g.user.id, name)
 
     return redirect(url_for('projects.index'))
 
@@ -44,6 +44,6 @@ def create():
 def delete(project_id):
     if request.method == 'POST':
         if project_id is not None:
-            db.delete_project(g.user.id, int(project_id))
+            repo.delete_project(project_id)
 
     return redirect(url_for('projects.index'))

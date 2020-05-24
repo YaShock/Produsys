@@ -2,7 +2,7 @@ from flask import (
     Blueprint, g, render_template, url_for, request, redirect, send_file
 )
 from produsys.auth import login_required
-from produsys.db import db
+from produsys.db import repo
 from produsys.to_serializable import to_serializable
 import json
 
@@ -12,14 +12,14 @@ bp = Blueprint('settings', __name__, url_prefix='/settings')
 def save_user_data(path):
     with open(path, 'w') as file:
         # Save projects
-        projects = db.get_projects_of_user(g.user.id)
+        projects = repo.get_projects_of_user(g.user.id)
         file.write(
             '{}\n'.format(
                 json.dumps(
                     {'projects': projects},
                     default=to_serializable)))
         # Save tasks
-        tasks = db.get_tasks_of_user(g.user.id)
+        tasks = repo.get_tasks_of_user(g.user.id)
         file.write(
             '{}\n'.format(
                 json.dumps(
@@ -27,7 +27,7 @@ def save_user_data(path):
                     default=to_serializable)))
         # Save task chunks
         for task in tasks:
-            task_chunks = db.get_task_chunks(g.user.id, task.id)
+            task_chunks = repo.get_task_chunks(g.user.id, task.id)
             file.write(
                 '{}\n'.format(
                     json.dumps(
