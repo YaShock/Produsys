@@ -2,7 +2,7 @@ import os
 from flask import Flask, redirect, url_for, g
 from flask_bootstrap import Bootstrap
 from flask_migrate import Migrate
-from produsys import auth, dashboard, projects, tasks, statistics, settings
+from produsys import auth, dashboard, projects, tasks, statistics
 from produsys.db import repo
 
 
@@ -39,6 +39,5 @@ def create_app(config=None, config_mapping=None):
     app.register_blueprint(projects.bp)
     app.register_blueprint(tasks.bp)
     app.register_blueprint(statistics.bp)
-    app.register_blueprint(settings.bp)
 
     return app
