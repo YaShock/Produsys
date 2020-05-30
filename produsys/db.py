@@ -179,7 +179,9 @@ class Repository(object):
         return TaskChunk.query.filter_by(task_id=task_id.id).all()
 
     def task_chunks_on_day(self, user_id, day):
-        return TaskChunk.query.filter_by(user_id=user_id).all()
+        all_tc = TaskChunk.query.filter_by(user_id=user_id).all()
+        return [t for t in all_tc if (
+            t.start.date() >= day and t.end.date() <= day)]
 
 
 repo = Repository(db)
