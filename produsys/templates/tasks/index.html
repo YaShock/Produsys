@@ -28,7 +28,7 @@
       {% for task in tasks recursive %}
         <li>
           <div>
-            {{ task.name }}
+            <a href="{{ url_for('dashboard.index', task_id=task.id) }}">{{ task.name }}</a>
             <a href="{{ url_for('tasks.subtask', project_id=project.id, parent_id=task.id) }}">
               Add subtask
             </a>
