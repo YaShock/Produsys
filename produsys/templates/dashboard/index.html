@@ -11,19 +11,21 @@
         <option disabled selected value style="display:none"> -- select a task -- </option>
       {% endif %}
       {% for t in tasks %}
-        <option value="{{ url_for('dashboard.index', task_id=t.id) }}" {% if t.id == task.id %} selected="selected" {% endif %}>
+        <option value="{{ t.id }}" {% if t.id == task.id %} selected="selected" {% endif %}>
           {{ t.name }}
         </option>
       {% endfor %}
     </select>
     {% if task.started %}
       <form class="form-inline" action="{{ url_for('dashboard.stop',task_id=task.id) }}" method="post">
+        <input type="url" id="location" name="return_url" value="" hidden/>
         <button class="btn btn-primary btn-sm" type="submit">
           Stop
         </button>
       </form>
     {% else %}
       <form class="form-inline" action="{{ url_for('dashboard.start',task_id=task.id) }}" method="post">
+        <input type="url" id="location" name="return_url" value="" hidden/>
         <button class="btn btn-primary btn-sm" type="submit">
           Start
         </button>
@@ -39,8 +41,8 @@
   {% endif %}
 
   <div>
-    From <input type="date" id="startDate" value="{{ start_date }}" onchange="onDate()">
-    To <input type="date" id="endDate" value="{{ end_date }}" onchange="onDate()">
+    From <input type="date" id="startDate" value="{{ start_date }}" onchange="changeUrl(null)">
+    To <input type="date" id="endDate" value="{{ end_date }}" onchange="changeUrl(null)">
   </div>
 
   {% for chunk_list in task_chunks %}
@@ -72,13 +74,12 @@
   </style>
 
   <script type="text/javascript">
+    let locationField = document.getElementById("location");
+    locationField.value = location.href;
+
     setInterval(function() {
       refreshTimer();
     }, 1000);
-
-    function onTask(selected) {
-      window.location = selected.value;
-    }
 
     function pad(num, size) {
       var s = num+"";
@@ -87,7 +88,11 @@
     }
 
     function refreshTimer() {
-      let t = $("#labelTime").html();
+      let label = $("#labelTime");
+      if (label.length === 0) {
+        return;
+      }
+      let t = label.html();
       let parts = t.split(":");
       let h = parseInt(parts[0], 10);
       let m = parseInt(parts[1], 10);
@@ -107,13 +112,24 @@
       $("#labelTime").html(text);
     }
 
-    function onDate() {
+    function onTask(selected) {
+      let taskId = selected.value;
+      changeUrl(taskId);
+    }
+
+    function changeUrl(taskId) {
       let startDate = "start_date=" + $("#startDate").val();
       let endDate = "end_date=" + $("#endDate").val();
-      console.log(startDate);
-      console.log(endDate);
       let args = "?" + startDate + "&" + endDate;
-      let url = "{% if (task) %}{{ url_for('dashboard.index', task_id=task.id ) }}{% else %}{{ url_for('dashboard.index') }}{% endif %}";
+      let url = "";
+
+      if (taskId) {
+        url = "{{ url_for('dashboard.index') }}" + taskId;
+      }
+      else {
+        url = "{% if (task) %}{{ url_for('dashboard.index', task_id=task.id ) }}{% else %}{{ url_for('dashboard.index') }}{% endif %}";
+      }
+
       window.location = url + args;
     }
   </script>

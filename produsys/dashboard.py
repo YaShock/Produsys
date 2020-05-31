@@ -67,6 +67,8 @@ def index(task_id):
 @bp.route('/start/<task_id>', methods=('GET', 'POST'))
 @login_required
 def start(task_id):
+    return_url = request.form.get('return_url')
+
     if request.method == 'POST':
         if task_id:
             task = repo.get_task_by_id(int(task_id))
@@ -74,12 +76,16 @@ def start(task_id):
                 task.start()
                 repo.db.session.commit()
 
+    if return_url:
+        return redirect(return_url)
     return redirect(url_for('dashboard.index', task_id=task_id))
 
 
 @bp.route('/stop/<task_id>', methods=('GET', 'POST'))
 @login_required
 def stop(task_id):
+    return_url = request.form.get('return_url')
+
     if request.method == 'POST':
         if task_id:
             task = repo.get_task_by_id(int(task_id))
@@ -92,4 +98,6 @@ def stop(task_id):
                 task.stop()
                 repo.db.session.commit()
 
+    if return_url:
+        return redirect(return_url)
     return redirect(url_for('dashboard.index', task_id=task_id))
