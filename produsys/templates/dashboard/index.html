@@ -16,19 +16,26 @@
         </option>
       {% endfor %}
     </select>
-    {% if task.started %}
+    {% if task %}
+      {% if task.started %}
       <form class="form-inline" action="{{ url_for('dashboard.stop',task_id=task.id) }}" method="post">
-        <input type="url" id="location" name="return_url" value="" hidden/>
+        <input type="url" class="location" name="return_url" value="" hidden />
         <button class="btn btn-primary btn-sm" type="submit">
           Stop
         </button>
       </form>
-    {% else %}
+      {% else %}
       <form class="form-inline" action="{{ url_for('dashboard.start',task_id=task.id) }}" method="post">
-        <input type="url" id="location" name="return_url" value="" hidden/>
+        <input type="url" class="location" name="return_url" value="" hidden />
         <button class="btn btn-primary btn-sm" type="submit">
           Start
         </button>
+      </form>
+      {% endif %}
+      
+      <form class="form-inline" action="{{ url_for('dashboard.edit_task_chunk', task_id=task.id) }}" method="get">
+        <input type="url" class="location" name="return_url" value="" hidden />
+        <button type="submit" class="btn btn-primary btn-sm">Add interval</button>
       </form>
     {% endif %}
 
@@ -59,7 +66,13 @@
     </div>
     {% for chunk in chunk_list["chunks"] %}
       <div class="row">
-        <div class="col-xs-3">{{ chunk.task_name }}</div>
+        <div class="col-xs-3">
+          <form class="form-inline" action="{{ url_for('dashboard.edit_task_chunk', task_id=chunk.task_id, tc_id=chunk.id) }}"
+            method="get">
+            <input type="url" class="location" name="return_url" value="" hidden />
+            <button type="submit" class="btn-link">{{ chunk.task_name }}</button>
+          </form>
+        </div>
         <div class="col-xs-3">{{ chunk.start.strftime('%H:%M:%S') }}</div>
         <div class="col-xs-3">{{ chunk.end.strftime('%H:%M:%S') }}</div>
         <div class="col-xs-3">{{ chunk.duration_text }}</div>
@@ -74,8 +87,12 @@
   </style>
 
   <script type="text/javascript">
-    let locationField = document.getElementById("location");
-    locationField.value = location.href;
+    let locationFields = document.getElementsByClassName("location");
+
+    Array.prototype.forEach.call(locationFields, function(lf, index) {
+      locationFields[index].setAttribute("value", location.href);
+      console.log("asd");
+    });
 
     setInterval(function() {
       refreshTimer();

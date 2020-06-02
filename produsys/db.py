@@ -170,6 +170,9 @@ class Repository(object):
         self.db.session.delete(task)
         self.db.session.commit()
 
+    def get_task_chunk_by_id(self, id):
+        return TaskChunk.query.filter_by(id=id).first()
+
     def create_task_chunk(self, user_id, task_id, task_name, start, end):
         task_chunk = TaskChunk(task_id, user_id, task_name, start, end)
         self.db.session.add(task_chunk)

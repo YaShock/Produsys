@@ -35,7 +35,7 @@ def task_chunks_between_dates(user_id, start_date, end_date):
 def index(task_id):
     task = None
     if task_id:
-        task = repo.get_task_by_id(int(task_id))
+        task = repo.get_task_by_id(task_id)
     tasks = repo.get_tasks_of_user(g.user.id)
 
     if task:
@@ -71,7 +71,7 @@ def start(task_id):
 
     if request.method == 'POST':
         if task_id:
-            task = repo.get_task_by_id(int(task_id))
+            task = repo.get_task_by_id(task_id)
             if task:
                 task.start()
                 repo.db.session.commit()
@@ -88,7 +88,7 @@ def stop(task_id):
 
     if request.method == 'POST':
         if task_id:
-            task = repo.get_task_by_id(int(task_id))
+            task = repo.get_task_by_id(task_id)
             if task:
                 if task.started:
                     start = task.start_time
@@ -101,3 +101,55 @@ def stop(task_id):
     if return_url:
         return redirect(return_url)
     return redirect(url_for('dashboard.index', task_id=task_id))
+
+
+@bp.route('/task_chunk/<task_id>', defaults={'tc_id': None}, methods=('GET', 'POST'))
+@bp.route('/task_chunk/<task_id>/<tc_id>', methods=('GET', 'POST'))
+@login_required
+def edit_task_chunk(task_id, tc_id):
+    task = repo.get_task_by_id(task_id)
+
+    if request.method == 'POST':
+        return_url = request.form.get('return_url')
+
+        start_time = request.form.get('start_time')
+        end_time = request.form.get('end_time')
+
+        if start_time:
+            start_time = datetime.strptime(start_time, '%Y/%m/%d %H:%M:%S')
+        if end_time:
+            end_time = datetime.strptime(end_time, '%Y/%m/%d %H:%M:%S')
+
+        if start_time and end_time and end_time > start_time:
+            if tc_id:
+                task_chunk = repo.get_task_chunk_by_id(tc_id)
+                # Modify task/project times
+                new_duration = end_time - start_time
+                delta = new_duration - task_chunk.duration
+                task_chunk.start = start_time
+                task_chunk.end = end_time
+                task_chunk.duration = new_duration
+                task._add_duration(delta)
+                repo.db.session.commit()
+            else:
+                duration = end_time - start_time
+                task._add_duration(duration)
+                repo.create_task_chunk(
+                    g.user.id, task.id, task.name, start_time, end_time)
+                repo.db.session.commit()
+
+        if return_url:
+            return redirect(return_url)
+        return redirect(url_for('dashboard.index'))
+
+    return_url = request.args.get('return_url')
+
+    start_time = ''
+    end_time = ''
+    if tc_id:
+        task_chunk = repo.get_task_chunk_by_id(tc_id)
+        start_time = datetime.strftime(task_chunk.start, '%Y/%m/%d %H:%M:%S')
+        end_time = datetime.strftime(task_chunk.end, '%Y/%m/%d %H:%M:%S')
+    return render_template('dashboard/edit_task_chunk.html',
+                           tc_id=tc_id, task=task, return_url=return_url,
+                           start_time=start_time, end_time=end_time)
