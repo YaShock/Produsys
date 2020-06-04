@@ -60,9 +60,9 @@
 
     <div class="row">
       <label class="col-xs-3">Task</label>
-      <label class="col-xs-3">Start</label>
-      <label class="col-xs-3">End</label>
-      <label class="col-xs-3">Duration</label>
+      <label class="col-xs-2">Start</label>
+      <label class="col-xs-2">End</label>
+      <label class="col-xs-2">Duration</label>
     </div>
     {% for chunk in chunk_list["chunks"] %}
       <div class="row">
@@ -73,9 +73,16 @@
             <button type="submit" class="btn-link">{{ chunk.task_name }}</button>
           </form>
         </div>
-        <div class="col-xs-3">{{ chunk.start.strftime('%H:%M:%S') }}</div>
-        <div class="col-xs-3">{{ chunk.end.strftime('%H:%M:%S') }}</div>
-        <div class="col-xs-3">{{ chunk.duration_text }}</div>
+        <div class="col-xs-2">{{ chunk.start.strftime('%H:%M:%S') }}</div>
+        <div class="col-xs-2">{{ chunk.end.strftime('%H:%M:%S') }}</div>
+        <div class="col-xs-2">{{ chunk.duration_text }}</div>
+        <div class="col-xs-3">
+          <form class="form-inline" action="{{ url_for('dashboard.delete_task_chunk', tc_id=chunk.id) }}"
+            method="post">
+            <input type="url" class="location" name="return_url" value="" hidden />
+            <button type="submit" class="btn-link">Delete</button>
+          </form>
+        </div>
       </div>
     {% endfor %}
   {% endfor %}

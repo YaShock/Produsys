@@ -186,5 +186,10 @@ class Repository(object):
         return [t for t in all_tc if (
             t.start.date() >= day and t.end.date() <= day)]
 
+    def delete_task_chunk(self, id):
+        task = TaskChunk.query.filter_by(id=id).first()
+        self.db.session.delete(task)
+        self.db.session.commit()
+
 
 repo = Repository(db)

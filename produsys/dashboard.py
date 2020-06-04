@@ -103,6 +103,23 @@ def stop(task_id):
     return redirect(url_for('dashboard.index', task_id=task_id))
 
 
+@bp.route('/delete/<tc_id>', methods=('GET', 'POST'))
+@login_required
+def delete_task_chunk(tc_id):
+    task_chunk = repo.get_task_chunk_by_id(tc_id)
+    return_url = request.form.get('return_url')
+
+    if request.method == 'POST':
+        task = repo.get_task_by_id(task_chunk.task_id)
+        duration = task_chunk.start - task_chunk.end
+        task._add_duration(duration)
+        repo.delete_task_chunk(tc_id)
+
+    if return_url:
+        return redirect(return_url)
+    return redirect(url_for('dashboard.index', task_id=task_chunk.task_id))
+
+
 @bp.route('/task_chunk/<task_id>', defaults={'tc_id': None}, methods=('GET', 'POST'))
 @bp.route('/task_chunk/<task_id>/<tc_id>', methods=('GET', 'POST'))
 @login_required
