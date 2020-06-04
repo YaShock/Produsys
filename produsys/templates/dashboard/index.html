@@ -12,7 +12,7 @@
       {% endif %}
       {% for t in tasks %}
         <option value="{{ t.id }}" {% if t.id == task.id %} selected="selected" {% endif %}>
-          {{ t.name }}
+          {{ t.full_path }}
         </option>
       {% endfor %}
     </select>

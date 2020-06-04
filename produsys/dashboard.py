@@ -3,6 +3,7 @@ from flask import (
 )
 from produsys.auth import login_required
 from produsys.db import repo
+from produsys.task_utils import set_task_full_paths
 from datetime import datetime, timedelta
 
 bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
@@ -37,6 +38,9 @@ def index(task_id):
     if task_id:
         task = repo.get_task_by_id(task_id)
     tasks = repo.get_tasks_of_user(g.user.id)
+
+    set_task_full_paths(tasks)
+    tasks.sort(key=lambda task: task.full_path)
 
     if task:
         task.start_time_elapsed = None
