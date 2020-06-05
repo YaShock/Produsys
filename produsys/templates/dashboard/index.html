@@ -17,14 +17,7 @@
       {% endfor %}
     </select>
     {% if task %}
-      {% if task.started %}
-      <form class="form-inline" action="{{ url_for('dashboard.stop',task_id=task.id) }}" method="post">
-        <input type="url" class="location" name="return_url" value="" hidden />
-        <button class="btn btn-primary btn-sm" type="submit">
-          Stop
-        </button>
-      </form>
-      {% else %}
+      {% if not task.started %}
       <form class="form-inline" action="{{ url_for('dashboard.start',task_id=task.id) }}" method="post">
         <input type="url" class="location" name="return_url" value="" hidden />
         <button class="btn btn-primary btn-sm" type="submit">
@@ -39,9 +32,20 @@
       </form>
     {% endif %}
 
-    {% if task.start_time_elapsed %}
-      <span id="labelTime"> {{ task.start_time_elapsed }} </span>
-    {% endif %}
+    {% for t in tasks %}
+      {% if t.started %}
+        <div>
+          <label>{{ t.name }}</label>
+          <span class="label-timer"> {{ t.start_time_elapsed }} </span>
+          <form class="form-inline" action="{{ url_for('dashboard.stop',task_id=t.id) }}" method="post">
+            <input type="url" class="location" name="return_url" value="" hidden />
+            <button class="btn btn-primary btn-sm" type="submit">
+              Stop
+            </button>
+          </form>
+        </div>
+      {% endif %}
+    {% endfor %}
 
   {% else %}
     <h4>No tasks have been added yet.</h4>
@@ -98,11 +102,10 @@
 
     Array.prototype.forEach.call(locationFields, function(lf, index) {
       locationFields[index].setAttribute("value", location.href);
-      console.log("asd");
     });
 
     setInterval(function() {
-      refreshTimer();
+      refreshTimers();
     }, 1000);
 
     function pad(num, size) {
@@ -111,11 +114,14 @@
       return s;
     }
 
-    function refreshTimer() {
-      let label = $("#labelTime");
-      if (label.length === 0) {
-        return;
-      }
+    function refreshTimers() {
+      jQuery(".label-timer").each(function() {
+        let current = $(this);
+        refreshTimer(current);
+      });
+    }
+
+    function refreshTimer(label) {
       let t = label.html();
       let parts = t.split(":");
       let h = parseInt(parts[0], 10);
@@ -133,7 +139,7 @@
         m = 0;
       }
       let text = h.toString() + ":" + pad(m, 2) + ":" + pad(s, 2);
-      $("#labelTime").html(text);
+      label.html(text);
     }
 
     function onTask(selected) {

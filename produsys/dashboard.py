@@ -42,11 +42,10 @@ def index(task_id):
     set_task_full_paths(tasks)
     tasks.sort(key=lambda task: task.full_path)
 
-    if task:
-        task.start_time_elapsed = None
-        if task.start_time:
-            task.start_time_elapsed = str(
-                datetime.utcnow() - task.start_time).split('.')[0]
+    for t in tasks:
+        if t.start_time:
+            t.start_time_elapsed = str(
+                datetime.utcnow() - t.start_time).split('.')[0]
 
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
