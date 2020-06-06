@@ -5,7 +5,13 @@
 {% endblock %}
 
 {% block app_content %}
+  <div>
+    <label>Display all</label>
+    <input id="display-filter" type="checkbox" {% if display_archived %}checked{% endif %} onchange="displayArchived(this.checked)" />
+  </div>
+
   <form class="form-inline" action="{{ url_for('projects.create') }}" method="post">
+    <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
     <input name="name" id="name" value="{{ request.form['name'] }}" required placeholder="Name">
     <input class="btn btn-primary btn-sm" type="submit" value="Add">
   </form>
@@ -16,15 +22,30 @@
         <th>Name</th>
         <th>Total hours</th>
         <th></th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
       {% for project in projects %}
-      <tr>
+      <tr {% if project.archived %}class="archived" style="display: none;"{% endif %}>
         <td><a href="{{ url_for('tasks.index', project_id=project.id) }}">{{ project.name }}</a></td>
         <td>{{ project.total_duration_str }}</td>
         <td>
+          {% if not project.archived %}
+            <form class="form-inline" action="{{ url_for('projects.archive', project_id=project.id) }}" method="post">
+              <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
+              <input class="btn btn-primary btn-sm" type="submit" value="Archive">
+            </form>
+          {% else %}
+            <form class="form-inline" action="{{ url_for('projects.unarchive', project_id=project.id) }}" method="post">
+              <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
+              <input class="btn btn-primary btn-sm" type="submit" value="Unarchive">
+            </form>
+          {% endif %}
+        </td>
+        <td>
           <form class="form-inline" action="{{ url_for('projects.delete', project_id=project.id) }}" method="post">
+            <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
             <input class="btn btn-danger btn-sm" type="submit" value="Delete">
           </form>
         </td>
@@ -32,4 +53,21 @@
       {% endfor %}
     </tbody>
   </table>
+
+  <script type="text/javascript">
+    window.onload = function() {
+      displayArchived({% if display_archived %}true{% else %}false{% endif %});
+    };
+
+    function displayArchived(isChecked) {
+      if (isChecked) {
+        $(".archived").show();
+      }
+      else {
+        $(".archived").hide();
+      }
+
+      $(".filterValue").val(isChecked);
+    }
+  </script>
 {% endblock %}

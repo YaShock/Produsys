@@ -24,6 +24,7 @@ class Project(db.Model):
         db.Interval,
         nullable=False,
         default=datetime.timedelta())
+    archived = db.Column(db.Boolean, default=False)
 
     def __init__(self, user_id, name):
         self.user_id = user_id
@@ -40,6 +41,7 @@ class Task(db.Model):
         db.Interval,
         nullable=False,
         default=datetime.timedelta())
+    archived = db.Column(db.Boolean, default=False)
 
     project_id = db.Column(
         db.Integer,
@@ -145,6 +147,11 @@ class Repository(object):
         self.db.session.delete(project)
         self.db.session.commit()
 
+    def project_set_archived(self, project_id, val):
+        project = Project.query.filter_by(id=project_id).first()
+        project.archived = val
+        self.db.session.commit()
+
     def get_project_by_id(self, project_id):
         return Project.query.filter_by(id=project_id).first()
 
@@ -168,6 +175,16 @@ class Repository(object):
     def delete_task(self, task_id):
         task = Task.query.filter_by(id=task_id).first()
         self.db.session.delete(task)
+        self.db.session.commit()
+
+    def task_set_archived(self, id, val):
+        def _task_set_archived(task, val):
+            task.archived = val
+            for t in task.chilren:
+                _task_set_archived(t, val)
+
+        task = Task.query.filter_by(id=id).first()
+        _task_set_archived(task, val)
         self.db.session.commit()
 
     def get_task_chunk_by_id(self, id):
