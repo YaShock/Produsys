@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block page_title %}Edit Task{% endblock %}</h1>
+{% endblock %}
+
+{% block app_content %}
+  <form class="form-inline" action="{{ url_for('tasks.edit', task_id=task.id, project_id=project_id) }}" method="post">
+    <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
+    <input name="name" id="name" value="{{ task.name }}" required placeholder="Name">
+    <input class="btn btn-primary btn-sm" type="submit" value="Save">
+  </form>
+  <form class="form-inline" action="{{ url_for('tasks.index', task_id=task.id) }}" method="get">
+    <input class="btn btn-primary btn-sm" type="submit" value="Cancel">
+  </form>
+{% endblock %}

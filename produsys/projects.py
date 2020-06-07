@@ -47,6 +47,35 @@ def create():
     return redirect(url_for('projects.index', display_archived=display_val))
 
 
+@bp.route('/edit/<project_id>', methods=('GET', 'POST'))
+@login_required
+def edit(project_id):
+    display_archived = request.form.get('displayArchived', False)
+    display_val = 1 if display_archived == 'true' else 0
+    project = repo.get_project_by_id(project_id)
+
+    if project:
+        if request.method == 'POST':
+            name = request.form['name']
+            error = None
+
+            if not name:
+                error = 'Name is required.'
+            elif repo.get_project_by_name(g.user.id, name) is not None:
+                error = 'Name is already in use.'
+
+            if error:
+                flash(error)
+            else:
+                project.name = name
+                repo.db.session.commit()
+        else:
+            return render_template(
+                'projects/edit.html', project=project, display_archived=display_archived)
+
+    return redirect(url_for('projects.index', display_archived=display_val))
+
+
 @bp.route('/delete/<project_id>', methods=('GET', 'POST'))
 @login_required
 def delete(project_id):

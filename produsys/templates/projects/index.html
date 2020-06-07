@@ -28,7 +28,13 @@
     <tbody>
       {% for project in projects %}
       <tr {% if project.archived %}class="archived" style="display: none;"{% endif %}>
-        <td><a href="{{ url_for('tasks.index', project_id=project.id) }}">{{ project.name }}</a></td>
+        <td>
+          <a href="{{ url_for('tasks.index', project_id=project.id) }}">
+            {% if project.archived %}<s>{% endif %}
+              {{ project.name }}
+            {% if project.archived %}</s>{% endif %}
+          </a>
+        </td>
         <td>{{ project.total_duration_str }}</td>
         <td>
           {% if not project.archived %}
@@ -44,6 +50,12 @@
           {% endif %}
         </td>
         <td>
+          <form class="form-inline" action="{{ url_for('projects.edit', project_id=project.id) }}" method="get">
+            <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
+            <input class="btn btn-primary btn-sm" type="submit" value="Edit">
+          </form>
+        </td>
+        <td>
           <form class="form-inline" action="{{ url_for('projects.delete', project_id=project.id) }}" method="post">
             <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
             <input class="btn btn-danger btn-sm" type="submit" value="Delete">
@@ -53,6 +65,25 @@
       {% endfor %}
     </tbody>
   </table>
+
+  <style type="text/css">
+    s {
+      display: inline-block;
+      text-decoration: none;
+      position: relative;
+    }
+
+    s:after {
+        content: '';
+        display: block;
+        width: 100%;
+        height: 50%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        border-bottom: 3px solid;
+    }
+  </style>
 
   <script type="text/javascript">
     window.onload = function() {

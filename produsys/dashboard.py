@@ -62,6 +62,9 @@ def index(task_id):
     # Fill out the displayed days
     task_chunks = task_chunks_between_dates(g.user.id, start_date, end_date)
 
+    for tc in task_chunks:
+        tc['chunks'].sort(key=lambda x: x.start, reverse=True)
+
     return render_template('dashboard/index.html',
                            tasks=tasks, task=task, task_chunks=task_chunks,
                            start_date=start_date, end_date=end_date)
@@ -97,7 +100,7 @@ def stop(task_id):
                     start = task.start_time
                     end = datetime.utcnow()
                     repo.create_task_chunk(
-                        g.user.id, task.id, task.name, start, end)
+                        g.user.id, task.id, start, end)
                 task.stop()
                 repo.db.session.commit()
 
@@ -155,7 +158,7 @@ def edit_task_chunk(task_id, tc_id):
                 duration = end_time - start_time
                 task._add_duration(duration)
                 repo.create_task_chunk(
-                    g.user.id, task.id, task.name, start_time, end_time)
+                    g.user.id, task.id, start_time, end_time)
                 repo.db.session.commit()
 
         if return_url:

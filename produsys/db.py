@@ -89,7 +89,6 @@ class Task(db.Model):
 
 class TaskChunk(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    task_name = db.Column(db.String(80), nullable=False)
     start = db.Column(db.DateTime, nullable=False)
     end = db.Column(db.DateTime, nullable=False)
     duration = db.Column(db.Interval, nullable=False)
@@ -105,10 +104,9 @@ class TaskChunk(db.Model):
         db.ForeignKey('user.id'),
         nullable=False)
 
-    def __init__(self, task_id, user_id, task_name, start, end):
+    def __init__(self, task_id, user_id, start, end):
         self.task_id = task_id
         self.user_id = user_id
-        self.task_name = task_name
         self.start = start
         self.end = end
         self.duration = end - start
@@ -190,8 +188,8 @@ class Repository(object):
     def get_task_chunk_by_id(self, id):
         return TaskChunk.query.filter_by(id=id).first()
 
-    def create_task_chunk(self, user_id, task_id, task_name, start, end):
-        task_chunk = TaskChunk(task_id, user_id, task_name, start, end)
+    def create_task_chunk(self, user_id, task_id, start, end):
+        task_chunk = TaskChunk(task_id, user_id, start, end)
         self.db.session.add(task_chunk)
         self.db.session.commit()
 

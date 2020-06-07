@@ -52,6 +52,34 @@ def create(project_id):
                             display_archived=display_val))
 
 
+@bp.route('/edit/<project_id>/<task_id>', methods=('GET', 'POST'))
+@login_required
+def edit(project_id, task_id):
+    display_archived = request.form.get('displayArchived', False)
+    display_val = 1 if display_archived == 'true' else 0
+    task = repo.get_task_by_id(task_id)
+
+    if task:
+        if request.method == 'POST':
+            name = request.form['name']
+            error = None
+
+            if not name:
+                error = 'Name is required.'
+
+            if error:
+                flash(error)
+            else:
+                task.name = name
+                repo.db.session.commit()
+        else:
+            return render_template(
+                'tasks/edit.html', task=task, project_id=project_id, display_archived=display_archived)
+
+    return redirect(url_for('tasks.index', project_id=project_id,
+                            display_archived=display_val))
+
+
 @bp.route('/subtask/<project_id>/<parent_id>', methods=('GET', 'POST'))
 @login_required
 def subtask(project_id, parent_id):
@@ -62,7 +90,8 @@ def subtask(project_id, parent_id):
     if parent_id is not None:
         parent = repo.get_task_by_id(parent_id)
     if parent is None:
-        return redirect(url_for('tasks.index', project_id=project_id))
+        return redirect(
+            url_for('tasks.index', project_id=project_id, display_archived=display_val))
 
     if request.method == 'POST':
         name = request.form['name']
