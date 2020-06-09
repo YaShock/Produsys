@@ -30,7 +30,7 @@
     </div>
     <div class="help-block"></div>
     <input type="url" class="location" name="return_url" value="{{ return_url }}" hidden />
-    <input class="btn btn-primary btn-sm" type="submit" value="Add">
+    <input class="btn btn-primary btn-sm" type="submit" value="Save">
   </form>
   <div class="help-block"></div>
   <form class="form-inline" action="{{ return_url }}" method="get">
@@ -38,13 +38,13 @@
   </form>
 
   <script>
-    window.onload = function () {
+    window.addEventListener("load", function () {
       $('#datetimepicker1').datetimepicker({
         format: 'YYYY/MM/DD HH:mm:ss'
       });
       $('#datetimepicker2').datetimepicker({
         format: 'YYYY/MM/DD HH:mm:ss'
       });
-    };
+    });
   </script>
 {% endblock %}

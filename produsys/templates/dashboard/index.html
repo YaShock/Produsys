@@ -77,8 +77,8 @@
             <button type="submit" class="btn-link">{{ chunk.task.name }}</button>
           </form>
         </div>
-        <div class="col-xs-2">{{ chunk.start.strftime('%H:%M:%S') }}</div>
-        <div class="col-xs-2">{{ chunk.end.strftime('%H:%M:%S') }}</div>
+        <div class="col-xs-2">{{ chunk.local_start.strftime('%H:%M:%S') }}</div>
+        <div class="col-xs-2">{{ chunk.local_end.strftime('%H:%M:%S') }}</div>
         <div class="col-xs-2">{{ chunk.duration_text }}</div>
         <div class="col-xs-3">
           <form class="form-inline" action="{{ url_for('dashboard.delete_task_chunk', tc_id=chunk.id) }}"
@@ -150,7 +150,8 @@
     function changeUrl(taskId) {
       let startDate = "start_date=" + $("#startDate").val();
       let endDate = "end_date=" + $("#endDate").val();
-      let args = "?" + startDate + "&" + endDate;
+      let utcOffset = '&utcOffset=' + $("#utcOffset").val();
+      let args = "?" + startDate + "&" + endDate + utcOffset;
       let url = "";
 
       if (taskId) {

@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
+    Blueprint, flash, g, redirect, render_template, request, url_for, session
 )
 from produsys.auth import login_required
 from produsys.db import repo
@@ -9,24 +9,31 @@ from datetime import datetime, timedelta
 bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
 
 
-def task_chunks_between_dates(user_id, start_date, end_date):
+def task_chunks_between_dates(user_id, start_date, end_date, delta):
     task_chunks = []
-    current = end_date
+    start = datetime.combine(start_date, datetime.min.time())
+    end = datetime.combine(end_date, datetime.max.time())
+    current = end + delta
+    local_current = end_date
 
-    while current >= start_date:
-        tc = repo.task_chunks_on_day(user_id, current)
+    while current >= start + delta:
+        current_min = current - timedelta(hours=23, minutes=59, seconds=59)
+        tc = repo.task_chunks_between_dates(user_id, current_min, current)
         total_dur = timedelta()
 
         for chunk in tc:
             chunk.duration_text = str(chunk.duration).split('.')[0]
             total_dur += chunk.duration
+            chunk.local_start = chunk.start - delta
+            chunk.local_end = chunk.end - delta
 
         task_chunks.append({
-            'date': current,
+            'date': local_current,
             'chunks': tc,
             'total_duration': str(total_dur).split('.')[0]
         })
         current -= timedelta(days=1)
+        local_current -= timedelta(days=1)
     return task_chunks
 
 
@@ -34,6 +41,8 @@ def task_chunks_between_dates(user_id, start_date, end_date):
 @bp.route('/<task_id>')
 @login_required
 def index(task_id):
+    delta = timedelta(minutes=session['utc_offset'])
+
     task = None
     if task_id:
         task = repo.get_task_by_id(task_id)
@@ -60,7 +69,8 @@ def index(task_id):
         end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
 
     # Fill out the displayed days
-    task_chunks = task_chunks_between_dates(g.user.id, start_date, end_date)
+    task_chunks = task_chunks_between_dates(
+        g.user.id, start_date, end_date, delta)
 
     for tc in task_chunks:
         tc['chunks'].sort(key=lambda x: x.start, reverse=True)
@@ -131,6 +141,7 @@ def delete_task_chunk(tc_id):
 @login_required
 def edit_task_chunk(task_id, tc_id):
     task = repo.get_task_by_id(task_id)
+    delta = timedelta(minutes=session['utc_offset'])
 
     if request.method == 'POST':
         return_url = request.form.get('return_url')
@@ -144,6 +155,9 @@ def edit_task_chunk(task_id, tc_id):
             end_time = datetime.strptime(end_time, '%Y/%m/%d %H:%M:%S')
 
         if start_time and end_time and end_time > start_time:
+            start_time += delta
+            end_time += delta
+
             if tc_id:
                 task_chunk = repo.get_task_chunk_by_id(tc_id)
                 # Modify task/project times
@@ -171,8 +185,10 @@ def edit_task_chunk(task_id, tc_id):
     end_time = ''
     if tc_id:
         task_chunk = repo.get_task_chunk_by_id(tc_id)
-        start_time = datetime.strftime(task_chunk.start, '%Y/%m/%d %H:%M:%S')
-        end_time = datetime.strftime(task_chunk.end, '%Y/%m/%d %H:%M:%S')
+        start_time = datetime.strftime(
+            task_chunk.start - delta, '%Y/%m/%d %H:%M:%S')
+        end_time = datetime.strftime(
+            task_chunk.end - delta, '%Y/%m/%d %H:%M:%S')
     return render_template('dashboard/edit_task_chunk.html',
                            tc_id=tc_id, task=task, return_url=return_url,
                            start_time=start_time, end_time=end_time)

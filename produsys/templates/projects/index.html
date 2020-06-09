@@ -86,9 +86,9 @@
   </style>
 
   <script type="text/javascript">
-    window.onload = function() {
+    window.addEventListener("load", function() {
       displayArchived({% if display_archived %}true{% else %}false{% endif %});
-    };
+    });
 
     function displayArchived(isChecked) {
       if (isChecked) {

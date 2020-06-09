@@ -36,6 +36,8 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        utc_offset = int(request.form.get('utc_offset', 0))
+
         error = None
         user = repo.get_user_by_name(username)
 
@@ -47,6 +49,7 @@ def login():
         if error is None:
             session.clear()
             session['user_id'] = user.id
+            session['utc_offset'] = utc_offset
             url = request.args.get('url')
             return redirect(url or url_for('index'))
 
