@@ -36,29 +36,29 @@
         {{ project.total_duration_str }}
       </td>
       <td>
-        {% if not project.archived %}
-          <form class="form-inline" action="{{ url_for('projects.archive', project_id=project.id) }}" method="post">
-            <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
-            <button type="submit" class="btn btn-primary">
-              <i class="fa fa-pencil-square fa-lg"></i>
-            </button>
-          </form>
-        {% else %}
-          <form class="form-inline" action="{{ url_for('projects.unarchive', project_id=project.id) }}" method="post">
-            <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
-            <button type="submit" class="btn btn-primary">
-              <i class="fa fa-pencil-square fa-lg"></i>
-            </button>
-          </form>
-        {% endif %}
-      </td>
-      <td>
         <form class="form-inline" action="{{ url_for('projects.edit', project_id=project.id) }}" method="get">
           <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
           <button type="submit" class="btn btn-warning">
             <i class="fa fa-pencil-square fa-lg"></i>
           </button>
         </form>
+      </td>
+      <td>
+        {% if not project.archived %}
+          <form class="form-inline" action="{{ url_for('projects.archive', project_id=project.id) }}" method="post">
+            <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
+            <button type="submit" class="btn btn-primary">
+              <i class="fa fa-archive fa-lg"></i>
+            </button>
+          </form>
+        {% else %}
+          <form class="form-inline" action="{{ url_for('projects.unarchive', project_id=project.id) }}" method="post">
+            <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
+            <button type="submit" class="btn btn-primary">
+              <i class="fa fa-archive fa-lg"></i>
+            </button>
+          </form>
+        {% endif %}
       </td>
       <td>
         <form class="form-inline" action="{{ url_for('projects.delete', project_id=project.id) }}" method="post">
