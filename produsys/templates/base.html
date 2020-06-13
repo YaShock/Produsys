@@ -18,11 +18,16 @@
       </div>
       <div class="collapse navbar-collapse" id="myNavbar">
         <ul class="nav navbar-nav">
-          <li><a href="{{ url_for('dashboard.index') }}">Dashboard</a>
-          <li><a href="{{ url_for('projects.index') }}">Projects</a>
-          <li><a href="{{ url_for('tasks.index') }}">Tasks</a>
-          <li><a href="{{ url_for('statistics.index') }}">Statistics</a>
-          <li><a href="{{ url_for('auth.logout') }}">Log Out</a>
+          {% if g.user %}
+            <li><a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+            <li><a href="{{ url_for('projects.index') }}">Projects</a>
+            <li><a href="{{ url_for('tasks.index') }}">Tasks</a>
+            <li><a href="{{ url_for('statistics.index') }}">Statistics</a>
+            <li><a href="{{ url_for('auth.logout') }}">Log Out</a>
+          {% else %}
+            <li><a href="{{ url_for('auth.register') }}">Register</a>
+            <li><a href="{{ url_for('auth.login') }}">Log In</a>
+          {% endif %}
         </ul>
       </div>
     </div>

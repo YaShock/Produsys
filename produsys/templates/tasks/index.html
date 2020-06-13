@@ -21,13 +21,14 @@
 
     <div>
       <label>Display all</label>
-      <input id="display-filter" type="checkbox" {% if display_archived %}checked{% endif %} onchange="displayArchived(this.checked)" />
+      <input id="displayFilter" type="checkbox" {% if display_archived %}checked{% endif %} onchange="displayArchived(this.checked)" />
     </div>
 
     <form class="form-inline" action="{{ url_for('tasks.create',project_id=project.id) }}" method="post">
       <input name="name" id="name" value="{{ request.form['name'] }}" required placeholder="Name">
-      <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
-      <input class="btn btn-primary btn-sm" type="submit" value="Add">
+      <button type="submit" class="btn btn-warning btn-sm" title="Add">
+        <i class="fa fa-plus fa-lg"></i>
+      </button>
     </form>
 
     {% if tasks|length > 0%}
@@ -43,38 +44,35 @@
             <a href="{{ url_for('tasks.subtask', project_id=project.id, parent_id=task.id) }}">
               Add subtask
             </a>
-            {% if not task.archived %}
-            <form class="form-inline" action="{{ url_for('tasks.archive', project_id=project.id, task_id=task.id) }}" method="post">
-              <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
-              <button type="submit" class="btn btn-primary btn-sm">
-                Archive
-              </button>
-            </form>
-            {% else %}
-              <form class="form-inline" action="{{ url_for('tasks.unarchive', project_id=project.id, task_id=task.id) }}" method="post">
-              <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
-              <button type="submit" class="btn btn-primary btn-sm">
-                Unarchive
-              </button>
-            </form>
-            {% endif %}
             <form class="form-inline" action="{{ url_for('tasks.edit', project_id=project.id, task_id=task.id) }}" method="get">
-                <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
-                <button type="submit" class="btn btn-primary btn-sm">
-                  Edit
+              <button type="submit" class="btn btn-warning btn-sm" title="Edit">
+                <i class="fa fa-pencil-square fa-lg"></i>
+              </button>
+            </form>
+            {% if not task.archived %}
+              <form class="form-inline" action="{{ url_for('tasks.archive', project_id=project.id, task_id=task.id) }}" method="post">
+                <button type="submit" class="btn btn-primary btn-sm" title="Archive">
+                  <i class="fa fa-archive fa-lg"></i>
                 </button>
               </form>
-              <form class="form-inline" action="{{ url_for('tasks.delete', project_id=project.id, task_id=task.id) }}" method="post">
-                <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
-                <button type="submit" class="btn btn-danger btn-sm">
-                  Delete
+              {% else %}
+                <form class="form-inline" action="{{ url_for('tasks.unarchive', project_id=project.id, task_id=task.id) }}" method="post">
+                <button type="submit" class="btn btn-primary btn-sm" title="Unarchive">
+                  <i class="fa fa-archive fa-lg"></i>
                 </button>
               </form>
+            {% endif %}
+            <form class="form-inline" action="{{ url_for('tasks.delete', project_id=project.id, task_id=task.id) }}" method="post">
+              <button type="submit" class="btn btn-danger btn-sm" title="Delete">
+                <i class="fa fa-trash-o fa-lg"></i>
+              </button>
+            </form>
           </div>
             {% if task.subtasks %}
               <ul>{{ loop(task.subtasks) }}</ul>
             {% endif %}
         </li>
+        <div class="help-block"/>
       {% endfor %}
       </ul>
     {% else%}
@@ -110,7 +108,17 @@
   <script type="text/javascript">
     window.addEventListener("load", function() {
       displayArchived({% if display_archived %}true{% else %} false{% endif %});
+
+      $("#displayFilter").change(function() {
+        filterChanged(this.checked);
+      });
     });
+
+    function filterChanged(isChecked) {
+      displayArchived(isChecked);
+      // send filter status
+      $.post("{{ url_for('tasks.set_filter') }}", { display_all: isChecked });
+    }
 
     function displayArchived(isChecked) {
       if (isChecked) {

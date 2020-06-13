@@ -6,7 +6,6 @@
 
 {% block app_content %}
   <form class="form-inline" action="{{ url_for('projects.edit', project_id=project.id) }}" method="post">
-    <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
     <input name="name" id="name" value="{{ project.name }}" required placeholder="Name">
     <input class="btn btn-primary btn-sm" type="submit" value="Save">
   </form>

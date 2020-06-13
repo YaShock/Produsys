@@ -7,13 +7,14 @@
 {% block app_content %}
   <div>
     <label>Display all</label>
-    <input id="display-filter" type="checkbox" {% if display_archived %}checked{% endif %} onchange="displayArchived(this.checked)" />
+    <input id="displayFilter" type="checkbox" {% if display_archived %}checked{% endif %} onchange="displayArchived(this.checked)" />
   </div>
 
   <form class="form-inline" action="{{ url_for('projects.create') }}" method="post">
-    <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
     <input name="name" id="name" value="{{ request.form['name'] }}" required placeholder="Name">
-    <input class="btn btn-primary btn-sm" type="submit" value="Add">
+    <button type="submit" class="btn btn-warning btn-sm" title="Add">
+      <i class="fa fa-plus fa-lg"></i>
+    </button>
   </form>
 
   <table class="table">
@@ -37,8 +38,7 @@
       </td>
       <td>
         <form class="form-inline" action="{{ url_for('projects.edit', project_id=project.id) }}" method="get">
-          <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
-          <button type="submit" class="btn btn-warning" title="Edit">
+          <button type="submit" class="btn btn-warning btn-sm" title="Edit">
             <i class="fa fa-pencil-square fa-lg"></i>
           </button>
         </form>
@@ -46,15 +46,13 @@
       <td>
         {% if not project.archived %}
           <form class="form-inline" action="{{ url_for('projects.archive', project_id=project.id) }}" method="post">
-            <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
-            <button type="submit" class="btn btn-primary" title="Archive">
+            <button type="submit" class="btn btn-primary btn-sm" title="Archive">
               <i class="fa fa-archive fa-lg"></i>
             </button>
           </form>
         {% else %}
           <form class="form-inline" action="{{ url_for('projects.unarchive', project_id=project.id) }}" method="post">
-            <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
-            <button type="submit" class="btn btn-primary" title="Unarchive">
+            <button type="submit" class="btn btn-primary btn-sm" title="Unarchive">
               <i class="fa fa-archive fa-lg"></i>
             </button>
           </form>
@@ -62,8 +60,7 @@
       </td>
       <td>
         <form class="form-inline" action="{{ url_for('projects.delete', project_id=project.id) }}" method="post">
-          <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
-          <button type="submit" class="btn btn-danger" title="Delete">
+          <button type="submit" class="btn btn-danger btn-sm" title="Delete">
             <i class="fa fa-trash-o fa-lg"></i>
           </button>
         </form>
@@ -99,7 +96,17 @@
   <script type="text/javascript">
     window.addEventListener("load", function() {
       displayArchived({% if display_archived %}true{% else %}false{% endif %});
+
+      $("#displayFilter").change(function() {
+        filterChanged(this.checked);
+      });
     });
+
+    function filterChanged(isChecked) {
+      displayArchived(isChecked);
+      // send filter status
+      $.post("{{ url_for('projects.set_filter') }}", { display_all: isChecked });
+    }
 
     function displayArchived(isChecked) {
       if (isChecked) {
