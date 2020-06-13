@@ -18,14 +18,12 @@ def index(project_id):
         project = repo.get_project_by_id(project_id)
     tasks = []
 
-    display_archived = session.get('display_all_tasks')
-
     if project is not None:
         tasks = repo.get_tasks_of_project(project)
         tasks = get_hierarchical_tasks(project.id, tasks)
 
     return render_template('tasks/index.html',
-                           project=project, projects=projects, tasks=tasks, display_archived=display_archived)
+                           project=project, projects=projects, tasks=tasks)
 
 
 @bp.route('/create/<project_id>', methods=('GET', 'POST'))

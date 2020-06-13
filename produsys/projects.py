@@ -11,16 +11,13 @@ bp = Blueprint('projects', __name__, url_prefix='/projects')
 @bp.route('/')
 @login_required
 def index():
-    display_archived = session.get('display_all_projects')
-
     projects = repo.get_projects_of_user(g.user.id)
     projects.sort(key=lambda p: p.name)
 
     for project in projects:
         project.total_duration_str = str(project.total_duration).split('.')[0]
 
-    return render_template('projects/index.html',
-                           projects=projects, display_archived=display_archived)
+    return render_template('projects/index.html', projects=projects)
 
 
 @bp.route('/create', methods=('GET', 'POST'))

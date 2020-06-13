@@ -21,7 +21,7 @@
 
     <div>
       <label>Display all</label>
-      <input id="displayFilter" type="checkbox" {% if display_archived %}checked{% endif %} onchange="displayArchived(this.checked)" />
+      <input id="displayFilter" type="checkbox" {% if session["display_all_tasks"] %}checked{% endif %} onchange="displayArchived(this.checked)" />
     </div>
 
     <form class="form-inline" action="{{ url_for('tasks.create',project_id=project.id) }}" method="post">
@@ -107,7 +107,7 @@
 
   <script type="text/javascript">
     window.addEventListener("load", function() {
-      displayArchived({% if display_archived %}true{% else %} false{% endif %});
+      displayArchived({% if session["display_all_tasks"] %}true{% else %} false{% endif %});
 
       $("#displayFilter").change(function() {
         filterChanged(this.checked);
