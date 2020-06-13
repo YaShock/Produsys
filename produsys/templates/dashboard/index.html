@@ -76,7 +76,7 @@
           <form class="form-inline" action="{{ url_for('dashboard.edit_task_chunk', task_id=chunk.task_id, tc_id=chunk.id) }}"
             method="get">
             <input type="url" class="location" name="return_url" value="" hidden />
-            <button type="submit" class="btn-link">{{ chunk.task.name }}</button>
+            <button type="submit" class="btn-link text-left">{{ chunk.task.name }}</button>
           </form>
         </div>
         <div class="col-xs-2">{{ chunk.local_start.strftime('%H:%M:%S') }}</div>
