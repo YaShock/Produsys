@@ -41,9 +41,11 @@
                 {{ task.name }}
               {% if task.archived %}</s>{% endif %}
             </a>
-            <a href="{{ url_for('tasks.subtask', project_id=project.id, parent_id=task.id) }}">
-              Add subtask
-            </a>
+            <form class="form-inline" action="{{ url_for('tasks.subtask', project_id=project.id, parent_id=task.id) }}" method="get">
+              <button type="submit" class="btn btn-warning btn-sm" title="Add subtask">
+                <i class="fa fa-plus fa-lg"></i>
+              </button>
+            </form>
             <form class="form-inline" action="{{ url_for('tasks.edit', project_id=project.id, task_id=task.id) }}" method="get">
               <button type="submit" class="btn btn-warning btn-sm" title="Edit">
                 <i class="fa fa-pencil-square fa-lg"></i>
@@ -69,6 +71,7 @@
             </form>
           </div>
             {% if task.subtasks %}
+              <div class="help-block"/>
               <ul>{{ loop(task.subtasks) }}</ul>
             {% endif %}
         </li>
