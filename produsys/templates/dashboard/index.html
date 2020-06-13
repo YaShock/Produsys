@@ -11,9 +11,11 @@
         <option disabled selected value style="display:none"> -- select a task -- </option>
       {% endif %}
       {% for t in tasks %}
-        <option value="{{ t.id }}" {% if t.id == task.id %} selected="selected" {% endif %}>
-          {{ t.full_path }}
-        </option>
+        {% if not t.archived %}
+          <option value="{{ t.id }}" {% if t.id == task.id %} selected="selected" {% endif %}>
+            {{ t.full_path }}
+          </option>
+        {% endif %}
       {% endfor %}
     </select>
     {% if task %}
