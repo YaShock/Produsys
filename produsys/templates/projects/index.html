@@ -24,7 +24,7 @@
       </tr>
     </thead>
     {% for project in projects %}
-    <tr>
+    <tr {% if project.archived %}class="archived" style="display: none;"{% endif %}>
       <td>
         <a href="{{ url_for('tasks.index', project_id=project.id) }}">
           {% if project.archived %}<s>{% endif %}
@@ -38,7 +38,7 @@
       <td>
         <form class="form-inline" action="{{ url_for('projects.edit', project_id=project.id) }}" method="get">
           <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
-          <button type="submit" class="btn btn-warning">
+          <button type="submit" class="btn btn-warning" title="Edit">
             <i class="fa fa-pencil-square fa-lg"></i>
           </button>
         </form>
@@ -47,14 +47,14 @@
         {% if not project.archived %}
           <form class="form-inline" action="{{ url_for('projects.archive', project_id=project.id) }}" method="post">
             <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-primary" title="Archive">
               <i class="fa fa-archive fa-lg"></i>
             </button>
           </form>
         {% else %}
           <form class="form-inline" action="{{ url_for('projects.unarchive', project_id=project.id) }}" method="post">
             <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-primary" title="Unarchive">
               <i class="fa fa-archive fa-lg"></i>
             </button>
           </form>
@@ -63,7 +63,7 @@
       <td>
         <form class="form-inline" action="{{ url_for('projects.delete', project_id=project.id) }}" method="post">
           <input type="hidden" class="filterValue" name="displayArchived" value="{{ display_archived }}" />
-          <button type="submit" class="btn btn-danger">
+          <button type="submit" class="btn btn-danger" title="Delete">
             <i class="fa fa-trash-o fa-lg"></i>
           </button>
         </form>
